@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.sesa/
+# A user's own project config stays out of the repo; the example's must be in it,
+# or a fresh clone is broken.
+/sesa.yaml
+!examples/**/sesa.yaml
+.env
+.DS_Store
+
+# Editor / tooling scratch state — not part of the product
+session-data/
+output/

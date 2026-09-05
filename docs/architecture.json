@@ -1,0 +1,418 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Sesa runtime architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/goldenxingxing/sesa",
+      "revision": "67d7d582d744d14a91fff62895e03073d795fa52"
+    },
+    "views": [
+      {
+        "id": "main-path",
+        "label": "Main path",
+        "focus": [
+          "cli",
+          "engine",
+          "adapters",
+          "agentcli",
+          "modelapi"
+        ],
+        "note": "One sesa run: from the command line into the engine, then through the adapter layer to real participants."
+      },
+      {
+        "id": "deliberation",
+        "label": "Deliberation core",
+        "focus": [
+          "engine",
+          "protocol",
+          "consensus"
+        ],
+        "note": "The protocol plans each round's Phases; stance cards feed the matrix and decide the outcome."
+      },
+      {
+        "id": "evidence",
+        "label": "Workspace and evidence",
+        "focus": [
+          "engine",
+          "workspace",
+          "evidence"
+        ],
+        "note": "Each participant gets its own checkout; changes are verified by self-test and cross-test."
+      },
+      {
+        "id": "trace",
+        "label": "Trace and consumers",
+        "focus": [
+          "engine",
+          "runstore",
+          "tui"
+        ],
+        "note": "The Engine only yields Events; events.jsonl is the only source of truth."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "config",
+      "type": "security",
+      "label": "Config & credentials",
+      "sublabel": "sesa.yaml · ~/.config · keyring",
+      "tag": "keys never hit disk",
+      "pos": [
+        60,
+        60
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/config.py",
+          "label": "the two config levels"
+        },
+        {
+          "path": "src/sesa/credentials.py",
+          "label": "keyring / env"
+        }
+      ]
+    },
+    {
+      "id": "protocol",
+      "type": "backend",
+      "label": "Protocol",
+      "sublabel": "five built in · plans each round",
+      "pos": [
+        300,
+        60
+      ],
+      "size": [
+        210,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/protocols/base.py",
+          "label": "plan() → Phase / Move"
+        }
+      ]
+    },
+    {
+      "id": "consensus",
+      "type": "backend",
+      "label": "Consensus assessment",
+      "sublabel": "StanceMatrix · rapporteur draft",
+      "pos": [
+        570,
+        60
+      ],
+      "size": [
+        210,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/consensus/matrix.py",
+          "label": "assess / decide_outcome"
+        },
+        {
+          "path": "src/sesa/consensus/rapporteur.py",
+          "label": "drafts RESULT"
+        }
+      ]
+    },
+    {
+      "id": "tui",
+      "type": "frontend",
+      "label": "TUI",
+      "sublabel": "textual · watch and interject",
+      "pos": [
+        60,
+        390
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/tui/app.py"
+        }
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "Sesa CLI",
+      "sublabel": "typer · run / resume / watch",
+      "pos": [
+        60,
+        250
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/cli.py"
+        }
+      ]
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "Engine",
+      "sublabel": "the round loop · yields only Events",
+      "pos": [
+        400,
+        320
+      ],
+      "size": [
+        210,
+        88
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/engine.py",
+          "label": "run() — the round loop"
+        }
+      ]
+    },
+    {
+      "id": "adapters",
+      "type": "backend",
+      "label": "Adapter layer",
+      "sublabel": "cli / openai_compat / anthropic",
+      "tag": "third parties register their own",
+      "pos": [
+        775,
+        328
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/adapters/__init__.py",
+          "label": "registry + build()"
+        }
+      ]
+    },
+    {
+      "id": "agentcli",
+      "type": "external",
+      "label": "Agent CLI participants",
+      "sublabel": "subprocess: claude / codex / kimi",
+      "pos": [
+        1050,
+        230
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/adapters/cli.py"
+        }
+      ]
+    },
+    {
+      "id": "modelapi",
+      "type": "external",
+      "label": "Model API participants",
+      "sublabel": "OpenAI-compatible · Anthropic API",
+      "pos": [
+        1050,
+        440
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/adapters/openai_compat.py"
+        },
+        {
+          "path": "src/sesa/adapters/anthropic.py"
+        }
+      ]
+    },
+    {
+      "id": "workspace",
+      "type": "backend",
+      "label": "Workspace",
+      "sublabel": "local / worktree / ephemeral",
+      "pos": [
+        400,
+        540
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/workspace/worktree.py",
+          "label": "a checkout per participant"
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "type": "backend",
+      "label": "Evidence",
+      "sublabel": "self-test · cross-test",
+      "pos": [
+        775,
+        540
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/evidence/runner.py"
+        }
+      ]
+    },
+    {
+      "id": "runstore",
+      "type": "database",
+      "label": "Run directory",
+      "sublabel": ".sesa/runs/<run_id>/",
+      "tag": "events.jsonl · RESULT.md · REPORT.md",
+      "pos": [
+        60,
+        570
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/record.py",
+          "label": "Recorder / replay"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "config-to-cli",
+      "from": "config",
+      "to": "cli",
+      "label": "sesa.yaml · resolved keys",
+      "variant": "security",
+      "labelDy": 24
+    },
+    {
+      "id": "cli-to-engine",
+      "from": "cli",
+      "to": "engine",
+      "label": "sesa run / resume",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tui-to-engine",
+      "from": "tui",
+      "to": "engine",
+      "label": "inject · veto · stop (next round)",
+      "labelDx": -95
+    },
+    {
+      "id": "protocol-to-engine",
+      "from": "protocol",
+      "to": "engine",
+      "label": "this round's Phases",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "engine-to-consensus",
+      "from": "engine",
+      "to": "consensus",
+      "label": "stance cards, each round",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "engine-to-adapters",
+      "from": "engine",
+      "to": "adapters",
+      "label": "a turn each, concurrently",
+      "variant": "emphasis"
+    },
+    {
+      "id": "adapters-to-agentcli",
+      "from": "adapters",
+      "to": "agentcli",
+      "label": "subprocess · reads and writes the repo",
+      "labelDy": 20
+    },
+    {
+      "id": "adapters-to-modelapi",
+      "from": "adapters",
+      "to": "modelapi",
+      "label": "HTTPS · text only",
+      "labelDy": 12
+    },
+    {
+      "id": "workspace-to-engine",
+      "from": "workspace",
+      "to": "engine",
+      "label": "a checkout per participant",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "workspace-to-evidence",
+      "from": "workspace",
+      "to": "evidence",
+      "label": "the checkouts under test"
+    },
+    {
+      "id": "engine-to-runstore",
+      "from": "engine",
+      "to": "runstore",
+      "label": "Event stream → events.jsonl"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Interfaces and trace",
+      "items": [
+        "The Engine yields Events and knows no terminal",
+        "CLI / TUI / SDK consume the same stream",
+        "events.jsonl is the only source of truth, and replayable"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Deliberation core",
+      "items": [
+        "debate / adversarial / council / ensemble / reflect",
+        "plan() plans each round's Phases; Moves run concurrently",
+        "StanceMatrix decides the outcome; the rapporteur drafts RESULT"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Participants and evidence",
+      "items": [
+        "Participants are agent CLIs and model APIs you already have",
+        "A worktree gives each of them their own working copy",
+        "self-test / cross-test verify what they changed"
+      ]
+    }
+  ]
+}

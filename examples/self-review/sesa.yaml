@@ -1,0 +1,26 @@
+# Self-review config: one strong, one weak, heterogeneous on both axes
+version: 1
+
+participants:
+  # An agent with tools: reads code, runs tests, and can write a finding up as a failing test
+  - id: claude
+    adapter: cli
+    command: ["claude", "-p", "--dangerously-skip-permissions"]
+    prompt: stdin
+    cwd: "{workspace}"
+    timeout: 1500
+    role: A rigorous, independent reviewer who accepts only reproducible evidence
+
+  # An API model: it can neither read nor write files, so the engine writes for it.
+  - id: deepseek
+    adapter: openai_compat
+    base_url: https://api.deepseek.com/v1
+    model: deepseek-chat
+    api_key: keyring:deepseek
+    max_tokens: 8000
+    timeout: 900
+    role: A rigorous, independent reviewer who accepts only reproducible evidence
+
+protocol: debate
+rounds: { max: 2, turn_timeout: 1500 }
+budget: { max_wall_seconds: 5400 } # max_usd will not take effect here: the adapters report no amount

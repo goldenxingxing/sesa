@@ -1,0 +1,417 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Sesa 运行时架构",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/goldenxingxing/sesa",
+      "revision": "67d7d582d744d14a91fff62895e03073d795fa52"
+    },
+    "views": [
+      {
+        "id": "main-path",
+        "label": "主路径",
+        "focus": [
+          "cli",
+          "engine",
+          "adapters",
+          "agentcli",
+          "modelapi"
+        ],
+        "note": "一次 sesa run 从命令行进入引擎，再经适配层打到真实参与者。"
+      },
+      {
+        "id": "deliberation",
+        "label": "审议核心",
+        "focus": [
+          "engine",
+          "protocol",
+          "consensus"
+        ],
+        "note": "协议规划每轮的 Phase，立场卡汇入矩阵并决定结论。"
+      },
+      {
+        "id": "evidence",
+        "label": "工作区与证据",
+        "focus": [
+          "engine",
+          "workspace",
+          "evidence"
+        ],
+        "note": "每个参与者拿到独立 checkout，改动用 self-test 与 cross-test 交叉验证。"
+      },
+      {
+        "id": "trace",
+        "label": "留痕与消费",
+        "focus": [
+          "engine",
+          "runstore",
+          "tui"
+        ],
+        "note": "引擎只产出 Event；events.jsonl 是唯一事实来源。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "config",
+      "type": "security",
+      "label": "配置与凭据",
+      "sublabel": "sesa.yaml · ~/.config/sesa · keyring",
+      "tag": "密钥不落盘",
+      "pos": [
+        60,
+        60
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/config.py",
+          "label": "配置分层"
+        },
+        {
+          "path": "src/sesa/credentials.py",
+          "label": "keyring / env"
+        }
+      ]
+    },
+    {
+      "id": "protocol",
+      "type": "backend",
+      "label": "Protocol 协议",
+      "sublabel": "内置 5 种协议 · 逐轮规划 Phase",
+      "pos": [
+        300,
+        60
+      ],
+      "size": [
+        210,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/protocols/base.py",
+          "label": "plan() → Phase / Move"
+        }
+      ]
+    },
+    {
+      "id": "consensus",
+      "type": "backend",
+      "label": "共识评估",
+      "sublabel": "StanceMatrix · rapporteur 起草",
+      "pos": [
+        570,
+        60
+      ],
+      "size": [
+        210,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/consensus/matrix.py",
+          "label": "assess / decide_outcome"
+        },
+        {
+          "path": "src/sesa/consensus/rapporteur.py",
+          "label": "RESULT 起草"
+        }
+      ]
+    },
+    {
+      "id": "tui",
+      "type": "frontend",
+      "label": "TUI",
+      "sublabel": "textual · 实时矩阵与干预",
+      "pos": [
+        60,
+        390
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/tui/app.py"
+        }
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "Sesa CLI",
+      "sublabel": "typer · run / resume / watch / judge",
+      "pos": [
+        60,
+        250
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/cli.py"
+        }
+      ]
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "Engine 审议引擎",
+      "sublabel": "轮次循环 · 只产出 Event，不认识终端",
+      "pos": [
+        400,
+        320
+      ],
+      "size": [
+        210,
+        88
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/engine.py",
+          "label": "run() 主循环"
+        }
+      ]
+    },
+    {
+      "id": "adapters",
+      "type": "backend",
+      "label": "Adapter 适配层",
+      "sublabel": "cli / openai_compat / anthropic",
+      "tag": "可注册第三方",
+      "pos": [
+        775,
+        328
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/adapters/__init__.py",
+          "label": "注册表 + build()"
+        }
+      ]
+    },
+    {
+      "id": "agentcli",
+      "type": "external",
+      "label": "Agent CLI 参与者",
+      "sublabel": "子进程：claude / codex / kimi …",
+      "pos": [
+        1050,
+        230
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/adapters/cli.py"
+        }
+      ]
+    },
+    {
+      "id": "modelapi",
+      "type": "external",
+      "label": "模型 API 参与者",
+      "sublabel": "OpenAI 兼容 / Anthropic Messages",
+      "pos": [
+        1050,
+        440
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/adapters/openai_compat.py"
+        },
+        {
+          "path": "src/sesa/adapters/anthropic.py"
+        }
+      ]
+    },
+    {
+      "id": "workspace",
+      "type": "backend",
+      "label": "Workspace 工作区",
+      "sublabel": "local / worktree / ephemeral",
+      "pos": [
+        400,
+        540
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/workspace/worktree.py",
+          "label": "每人一份 checkout"
+        }
+      ]
+    },
+    {
+      "id": "evidence",
+      "type": "backend",
+      "label": "Evidence 证据",
+      "sublabel": "self-test · cross-test",
+      "pos": [
+        775,
+        540
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/evidence/runner.py"
+        }
+      ]
+    },
+    {
+      "id": "runstore",
+      "type": "database",
+      "label": "运行目录",
+      "sublabel": ".sesa/runs/<run_id>/",
+      "tag": "events.jsonl · RESULT.md · REPORT.md",
+      "pos": [
+        60,
+        570
+      ],
+      "size": [
+        190,
+        72
+      ],
+      "sources": [
+        {
+          "path": "src/sesa/record.py",
+          "label": "Recorder / 重放"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "config-to-cli",
+      "from": "config",
+      "to": "cli",
+      "label": "sesa.yaml · 解析出的密钥",
+      "variant": "security",
+      "labelDy": 24
+    },
+    {
+      "id": "cli-to-engine",
+      "from": "cli",
+      "to": "engine",
+      "label": "sesa run / resume",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tui-to-engine",
+      "from": "tui",
+      "to": "engine",
+      "label": "inject · veto · stop（下一轮生效）",
+      "labelDx": -95
+    },
+    {
+      "id": "protocol-to-engine",
+      "from": "protocol",
+      "to": "engine",
+      "label": "本轮的 Phase 计划",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "engine-to-consensus",
+      "from": "engine",
+      "to": "consensus",
+      "label": "每轮的立场卡",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "engine-to-adapters",
+      "from": "engine",
+      "to": "adapters",
+      "label": "每人一轮，并发",
+      "variant": "emphasis"
+    },
+    {
+      "id": "adapters-to-agentcli",
+      "from": "adapters",
+      "to": "agentcli",
+      "label": "子进程 · 可读写仓库",
+      "labelDy": 20
+    },
+    {
+      "id": "adapters-to-modelapi",
+      "from": "adapters",
+      "to": "modelapi",
+      "label": "HTTPS · 纯文本"
+    },
+    {
+      "id": "workspace-to-engine",
+      "from": "workspace",
+      "to": "engine",
+      "label": "每人一份 checkout",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "workspace-to-evidence",
+      "from": "workspace",
+      "to": "evidence",
+      "label": "各自 checkout 上跑测试"
+    },
+    {
+      "id": "engine-to-runstore",
+      "from": "engine",
+      "to": "runstore",
+      "label": "Event 流 → events.jsonl"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "接口与留痕",
+      "items": [
+        "Engine 只 yield Event，不认识终端",
+        "CLI / TUI / SDK 消费同一条事件流",
+        "events.jsonl 是唯一事实来源，可重放"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "审议核心",
+      "items": [
+        "内置 debate / adversarial / council / ensemble / reflect",
+        "plan() 规划每轮 Phase，Phase 内 Move 并发",
+        "立场卡进 StanceMatrix 判定终局，rapporteur 起草 RESULT"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "参与者与证据",
+      "items": [
+        "参与者是你已有的 agent CLI 与模型 API",
+        "worktree 让每人有独立工作副本",
+        "self-test / cross-test 交叉验证改动"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sesa"
+version = "0.1.0"
+description = "A multi-agent deliberation engine that orchestrates disagreement, not tasks: bring the agent CLIs you already use, and get back what they settled and what they did not"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+keywords = ["llm", "multi-agent", "debate", "consensus", "deliberation", "agent-cli"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+  "httpx>=0.27",
+  "pyyaml>=6.0",
+  "rich>=13.7",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+keyring = ["keyring>=25.0"]
+tui = ["textual>=0.79"]
+semantic = ["sentence-transformers>=3.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.6"]
+
+[project.scripts]
+sesa = "sesa.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/goldenxingxing/sesa"
+Documentation = "https://github.com/goldenxingxing/sesa/blob/main/DESIGN.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sesa"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+  "E501",    # line width is the formatter's job
+  "RUF001",  # full-width punctuation in the Chinese catalogue is deliberate
+  "RUF002",
+  "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# typer's idiom is to call Option/Argument in a default value
+"src/sesa/cli.py" = ["B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

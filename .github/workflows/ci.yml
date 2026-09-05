@@ -1,0 +1,30 @@
+name: CI
+
+# Manual trigger only, for now.
+#
+# Actions on a private repository consume the account's quota, billing is not set up yet, and
+# automatic triggers would only leave a wall of red crosses — and for a project heading for
+# open source, a red CI is a liability.
+# To restore automatic triggers, uncomment the two lines below (Actions are free once the
+# repository is public).
+on:
+  workflow_dispatch:
+  # push: {branches: [main]}
+  # pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv --python ${{ matrix.python }}
+      - run: uv pip install -e ".[dev]"
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      - run: uv run pytest -q

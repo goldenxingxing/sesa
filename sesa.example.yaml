@@ -1,0 +1,124 @@
+# Sesa example configuration
+#
+# Two levels:
+#   ~/.config/sesa/config.yaml   the global participant library, shared across projects
+#                                (written by sesa init)
+#   ./sesa.yaml                  per project: which of them, which protocol, what budget
+#
+# How many participants is up to you: at least 2, with no upper bound (only the budget).
+
+version: 1
+
+# Interface language: en | zh. Left out, it is guessed from the system locale, falling back to
+# English. This governs only the wording of the CLI, wizard, TUI and reports — which language
+# the parties speak is decided by the task text itself, so asking in Chinese gets Chinese
+# deliverables even under an English interface.
+# language: en
+
+participants:
+  # ── An agent through its CLI: has tools, reads and writes files, reads the code first ──
+  - id: claude
+    adapter: cli
+    command: ["claude", "-p", "--effort", "high"]
+    prompt: stdin # stdin | argv | argv_template
+    cwd: "{workspace}"
+    role: "A pragmatic systems engineer who puts maintainability and running cost first, and is conservative about new technology"
+
+  # Wiring up any other agent CLI takes no code, only a description of how to start it:
+  # - id: codex
+  #   adapter: cli
+  #   command: ["codex", "exec", "--json"]
+  #   prompt: stdin
+  #   parse: jsonl               # raw | jsonl
+  #   extract: "message.text"    # the path to pull out when parse=jsonl
+  #   timeout: 1800           # backstop for the total time (default 1800s = 30 minutes).
+  #                           # **Setting it high is deliberate**: what really constrains cost
+  #                           # is budget.max_wall_seconds below, and the engine takes the
+  #                           # smaller of the two; this only asks "has this process hung".
+  #                           # Killing by mistake voids a whole turn. Measured, `kimi --quiet`
+  #                           # takes 660–900 seconds to finish a round normally — the old
+  #                           # default of 600 would kill it.
+  #   idle_timeout: 300       # how long with nothing emitted **after it has spoken** counts as
+  #                           # hung (default 300s). The test is not "how long since it spoke"
+  #                           # but "has it spoken at all" — some CLIs buffer throughout and
+  #                           # emit at the end, and for them idle and working are
+  #                           # observationally identical. So before the first chunk only
+  #                           # timeout applies: when slow and dead cannot be told apart, it is
+  #                           # better to wait than to kill by mistake.
+  #   env: { CODEX_QUIET: "1" }
+
+  # ── A bare model through its API: plain text reasoning, no tools ──────────────────────
+  - id: kimi
+    adapter: openai_compat
+    base_url: https://api.kimi.com/coding/v1
+    model: kimi-for-coding
+    api_key: keyring # the real key lives in the system keyring, never in a config file
+    role: "A bold innovator, willing to challenge received assumptions"
+    # A thinking model's reasoning tokens count as output (measured, 76% for Kimi).
+    # The deliberation does not consume the reasoning, so turn it off when cost matters:
+    # extra_body: { thinking: { type: disabled } }
+
+  # Material only this one participant gets. **Most of the time you do not need it.**
+  #
+  # Material for everyone goes through `sesa run --file <path>` — a user starting a
+  # deliberation gives one task and every participant sees it, which is the norm. With a scan
+  # report or an RFC in hand there is no reason to show it to only one of them.
+  #
+  # briefing is for the case where material genuinely should not be passed on. Ask first: why
+  # can this material not be shown to the others? If you cannot answer, use --file.
+  # briefing: "@reports/private-context.md"
+
+  - id: gpt5
+    adapter: openai_compat
+    base_url: https://openrouter.ai/api/v1
+    model: openai/gpt-5
+    api_key_env: OPENROUTER_API_KEY # an environment variable works too, and suits CI
+    role: "A rigorous sceptic who hunts for holes in the argument"
+
+  # The same model through a different adapter is a different participant:
+  # - id: claude-api
+  #   adapter: anthropic
+  #   model: claude-sonnet-5
+  #   api_key: keyring
+  #   role: "Reasons only from the given context and does not go and read the code"
+
+# No arbiter. Once it converges a participant writes it up on rotation; if it does not, the
+# positions are set out side by side and a person decides.
+protocol: debate # ensemble | debate | council | adversarial
+
+# Solo roles always rotate by default — not by picking "an impartial one", but by keeping the
+# position moving.
+rapporteur: rotate # rotate | <participant_id>
+proposer: rotate # adversarial only: rotate | <participant_id> | input
+#   input = the thing under review is the task input (e.g. --file rfc.md); there is no agent
+#           proposer, everyone attacks, and the last phase becomes a cross-check of whether
+#           each other's attacks hold
+
+turn_taking: parallel # parallel (default) | sequential
+#   Round 0 is always parallel: independent drafts are the only source of diversity
+#   Under sequential the speaking order round-robins each round, cancelling position bias
+
+share_thinking: never # never (default) | on_deadlock | always
+#   The reasoning is not shared by default — the more that is shared, the faster they converge.
+#   on_deadlock: opened only when stuck, which is when digging out the two sides' differing
+#   premises is what is needed
+
+rounds:
+  max: 4
+  stability_window: 2 # how many consecutive rounds without anyone moving counts as a deadlock
+
+consensus:
+  confidence_threshold: 0.6
+
+budget:
+  # Note: the built-in adapters **do not invent pricing** (a provider's prices go stale, and
+  # hard-coding them only misleads), so unless your adapter returns an amount itself this
+  # setting does not take effect — the engine says so at runtime.
+  # max_usd: 2.0
+
+  # **A run-wide wall-clock limit is deliberately not set here.** The total is already bounded
+  # (at most `rounds.max` rounds, none longer than `turn_timeout`), so this limit adds no
+  # protection and exactly one failure mode: cut off part-way. Measured, one run configured at
+  # 2000s squeezed every call's timeout to 1 second in round 3, wiping that round out and
+  # nearly burying three good rounds with it. Set one only if you really need a hard stop.
+  # max_wall_seconds: 5400
