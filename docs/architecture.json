@@ -7,7 +7,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/goldenxingxing/sesa",
-      "revision": "67d7d582d744d14a91fff62895e03073d795fa52"
+      "revision": "6e035b385b09f52d823168a1183ad97b75ccb6f6"
     },
     "views": [
       {
@@ -147,7 +147,7 @@
       "id": "cli",
       "type": "frontend",
       "label": "Sesa CLI",
-      "sublabel": "typer · run / resume / watch",
+      "sublabel": "typer · run / resume / watch / judge",
       "pos": [
         60,
         250
@@ -307,12 +307,12 @@
   ],
   "connections": [
     {
-      "id": "config-to-cli",
-      "from": "config",
-      "to": "cli",
-      "label": "sesa.yaml · resolved keys",
+      "id": "cli-to-config",
+      "from": "cli",
+      "to": "config",
+      "label": "reads sesa.yaml · keys from keyring",
       "variant": "security",
-      "labelDy": 24
+      "labelDy": -60
     },
     {
       "id": "cli-to-engine",
@@ -325,24 +325,27 @@
       "id": "tui-to-engine",
       "from": "tui",
       "to": "engine",
-      "label": "inject · veto · stop (next round)",
-      "labelDx": -95
+      "label": "inject · veto · stop · consumes Events",
+      "labelDx": -110
     },
     {
-      "id": "protocol-to-engine",
-      "from": "protocol",
-      "to": "engine",
-      "label": "this round's Phases",
-      "fromSide": "bottom",
-      "toSide": "top"
+      "id": "engine-to-protocol",
+      "from": "engine",
+      "to": "protocol",
+      "label": "plan(state) → the round's Phases",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelDy": -20
     },
     {
       "id": "engine-to-consensus",
       "from": "engine",
       "to": "consensus",
-      "label": "stance cards, each round",
+      "label": "stance cards → StanceMatrix → outcome",
       "fromSide": "top",
-      "toSide": "bottom"
+      "toSide": "bottom",
+      "labelDy": 20,
+      "labelDx": 30
     },
     {
       "id": "engine-to-adapters",
@@ -366,18 +369,20 @@
       "labelDy": 12
     },
     {
-      "id": "workspace-to-engine",
-      "from": "workspace",
-      "to": "engine",
-      "label": "a checkout per participant",
-      "fromSide": "top",
-      "toSide": "bottom"
+      "id": "engine-to-workspace",
+      "from": "engine",
+      "to": "workspace",
+      "label": "prepare() → a checkout per participant",
+      "fromSide": "bottom",
+      "toSide": "top"
     },
     {
-      "id": "workspace-to-evidence",
-      "from": "workspace",
+      "id": "engine-to-evidence",
+      "from": "engine",
       "to": "evidence",
-      "label": "the checkouts under test"
+      "label": "self-test / cross-test in each checkout",
+      "fromSide": "right",
+      "toSide": "left"
     },
     {
       "id": "engine-to-runstore",

@@ -7,7 +7,7 @@
     "quality_profile": "showcase",
     "repository": {
       "url": "https://github.com/goldenxingxing/sesa",
-      "revision": "67d7d582d744d14a91fff62895e03073d795fa52"
+      "revision": "6e035b385b09f52d823168a1183ad97b75ccb6f6"
     },
     "views": [
       {
@@ -307,12 +307,12 @@
   ],
   "connections": [
     {
-      "id": "config-to-cli",
-      "from": "config",
-      "to": "cli",
-      "label": "sesa.yaml · 解析出的密钥",
+      "id": "cli-to-config",
+      "from": "cli",
+      "to": "config",
+      "label": "读 sesa.yaml · keyring 取密钥",
       "variant": "security",
-      "labelDy": 24
+      "labelDy": -60
     },
     {
       "id": "cli-to-engine",
@@ -325,24 +325,26 @@
       "id": "tui-to-engine",
       "from": "tui",
       "to": "engine",
-      "label": "inject · veto · stop（下一轮生效）",
+      "label": "inject · veto · stop，消费 Event 流",
       "labelDx": -95
     },
     {
-      "id": "protocol-to-engine",
-      "from": "protocol",
-      "to": "engine",
-      "label": "本轮的 Phase 计划",
-      "fromSide": "bottom",
-      "toSide": "top"
+      "id": "engine-to-protocol",
+      "from": "engine",
+      "to": "protocol",
+      "label": "plan(state) → 本轮 Phase",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelDy": -20
     },
     {
       "id": "engine-to-consensus",
       "from": "engine",
       "to": "consensus",
-      "label": "每轮的立场卡",
+      "label": "立场卡 → StanceMatrix → 终局",
       "fromSide": "top",
-      "toSide": "bottom"
+      "toSide": "bottom",
+      "labelDy": 20
     },
     {
       "id": "engine-to-adapters",
@@ -362,21 +364,24 @@
       "id": "adapters-to-modelapi",
       "from": "adapters",
       "to": "modelapi",
-      "label": "HTTPS · 纯文本"
+      "label": "HTTPS · 纯文本",
+      "labelDy": 12
     },
     {
-      "id": "workspace-to-engine",
-      "from": "workspace",
-      "to": "engine",
-      "label": "每人一份 checkout",
-      "fromSide": "top",
-      "toSide": "bottom"
+      "id": "engine-to-workspace",
+      "from": "engine",
+      "to": "workspace",
+      "label": "prepare() → 每人一份 checkout",
+      "fromSide": "bottom",
+      "toSide": "top"
     },
     {
-      "id": "workspace-to-evidence",
-      "from": "workspace",
+      "id": "engine-to-evidence",
+      "from": "engine",
       "to": "evidence",
-      "label": "各自 checkout 上跑测试"
+      "label": "在各 checkout 上跑 self-test / cross-test",
+      "fromSide": "right",
+      "toSide": "left"
     },
     {
       "id": "engine-to-runstore",

@@ -19,3 +19,7 @@ build/
 # Editor / tooling scratch state — not part of the product
 session-data/
 output/
+
+# The interactive viewers are generated from docs/architecture*.json; the repo keeps
+# the spec and the exported PNG, not the 700KB of markup in between.
+docs/architecture*.html
